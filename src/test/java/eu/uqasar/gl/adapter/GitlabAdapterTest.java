@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import eu.uqasar.adapter.exception.uQasarException;
 import eu.uqasar.adapter.model.Measurement;
+import eu.uqasar.jenkins.adapter.JenkinsAdapter;
 
 /**
  * 
@@ -16,7 +17,7 @@ import eu.uqasar.adapter.model.Measurement;
  */
 public class GitlabAdapterTest {
 
-	private GitlabAdapter gitlabAdapter;
+	private JenkinsAdapter gitlabAdapter;
     private String boundSystemURL;
     private String credentials;
     private String queryExpression;
@@ -24,7 +25,7 @@ public class GitlabAdapterTest {
     
     @Before
     public void setUp() {
-    	gitlabAdapter = new GitlabAdapter();
+    	gitlabAdapter = new JenkinsAdapter();
     	boundSystemURL = "https://gitlab.com";
     	credentials = "user:pass";
     }

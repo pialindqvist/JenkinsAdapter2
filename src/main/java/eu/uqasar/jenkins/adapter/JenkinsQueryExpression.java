@@ -1,12 +1,12 @@
-package eu.uqasar.gl.adapter;
+package eu.uqasar.jenkins.adapter;
 
 import eu.uqasar.adapter.query.QueryExpression;
 
-public class GitlabQueryExpression extends QueryExpression {
+public class JenkinsQueryExpression extends QueryExpression {
 
     String query;
 
-    public GitlabQueryExpression(String query) {
+    public JenkinsQueryExpression(String query) {
         super(query);
         this.query = query;
     }
