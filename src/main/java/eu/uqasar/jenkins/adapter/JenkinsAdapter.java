@@ -39,167 +39,160 @@ public class JenkinsAdapter implements SystemAdapter {
 
         	/* Saving the system url */  
     		String long_url = boundSystem.getUri();
-    		String url = null;
+    		String url = "";
 
     		/* Saving the project name */
     		String project = "";
 
     		/* Testing weather the url is valid and removing the end of it to get an url for authentication */
     		String[] parts = long_url.split("/");
-    		
-    		try{
-    			
+    		    			
 		//************************ Splitting the URL to URL & project name ************************//
-    			
-    			for(int i = 0; i < parts.length; i++) {
-    				if(parts[i].compareTo("job") == 0 && parts.length-1 > i){
-    					project = parts[i+1];
-    					i = parts.length;
-    					}
-    				else if (i == 3){
-    					url = url + parts[i];
-    				}
-    				else{
-    					url = url + parts[i] + "/";
-    					}
-    			}
-    			
-	            /* Initialize new Jenkins server */
-	            JenkinsServer jenkins = null;            
-	
-	            /* Use the Jenkins-client library to open the server connection */
-				try {
-					
-		//********************************* Connecting to server *********************************//
-					
-					jenkins = new JenkinsServer(new URI(url), user.getUsername(), user.getPassword());
-				
-		            /* This comes from the U-QASAR interface */
-		            String query = queryExpression.getQuery();
-		            		            
-        //******************************* Implementing data mapping *******************************//
-        // TODO: virheenkäsittelyä selkeytettävä
-		
-		            if (query.equalsIgnoreCase(uQasarMetric.JENKINS_LATEST_BUILD_SUCCESS.name())) {
-		
-		          	  	JobWithDetails job  = null;
-		          	  	String status = "";
-		            	
-		          	  	try {
-		          	  		job = jenkins.getJobs().get(project).details();
-		          	  		
-							if(job.getLastBuild().getNumber() == job.getLastStableBuild().getNumber()){
-							 
-								status = "Stable";
-							}
-							else if (job.getLastBuild().getNumber() == job.getLastUnstableBuild().getNumber()) {
-							  
-								status = "Unstable";
-							}
-							else if (job.getLastBuild().getNumber() == job.getLastFailedBuild().getNumber()) {
-								status = "Broken";
-							}
-							else
-								status = "Unknown";
-		          	  		
-		          	  	} catch (IOException e) {
-		          	  		// TODO Auto-generated catch block
-		          	  		e.printStackTrace();
-		          	  	}
-		          	  	
-		          	  	measurements.add(new Measurement(uQasarMetric.JENKINS_LATEST_BUILD_SUCCESS, status));
-		                
-		            }
-		            
-		            if (query.equalsIgnoreCase(uQasarMetric.JENKINS_BUILD_HISTORY.name())) {
-		            	
-		            	JobWithDetails job  = null;  
-		            	JSONArray measurementResultJSONArray = new JSONArray();
-		            	
-		            	try {
-			            	job = jenkins.getJobs().get(project).details();
-			            	
-				      		for(int i=0; i< Math.min(100, job.getBuilds().size()); i++ ) {
-				      			
-				      			JSONObject jObj = new JSONObject();
-				      			jObj.put("BuildNumber", Integer.toString(job.getBuilds().get(i).details().getNumber()));
-				      			
-				      			if(job.getBuilds().get(i).details().getResult().name() != "STABLE") {
-				      				jObj.put("BuildStatus", "Stable");
-				      			}
-				      			else if(job.getBuilds().get(i).details().getResult().name() != "UNSTABLE") {
-				      				jObj.put("BuildStatus", "Unstable");
-				      			}
-				      			else if(job.getBuilds().get(i).details().getResult().name() != "FAILED") {
-				      				jObj.put("BuildStatus", "Failed");
-				      			}
-				      			else {
-				      				jObj.put("BuildStatus", "Unknown");
-				      			}
-				      			
-				      			measurementResultJSONArray.put(jObj);
-				      		}
-				      						      			
-			      		} catch (IOException e) {
-				      			e.printStackTrace();
-			      		}
-		            	
-		            	measurements.add(new Measurement(uQasarMetric.JENKINS_BUILD_HISTORY, measurementResultJSONArray.toString()));
-			      		
-		            }
-		            
-		            if (query.equalsIgnoreCase(uQasarMetric.JENKINS_PROJECTS.name())) {
-		            
-		            	JobWithDetails job  = null;
-		            	Map<String, Job> jobs = null;
-		  			  	JSONArray measurementResultJSONArray = new JSONArray();
-		  			  	
-		  			  	try {
-		  			  		job = jenkins.getJobs().get(project).details();
-		  			  		jobs = jenkins.getJobs();
-		  			  	
-			  			  	for (Map.Entry entry : jobs.entrySet()) {
-			  			  		JSONObject jObj = new JSONObject();
-			  				  
-			  			  		Job j = (Job) entry.getValue();
-			  			  		jObj.put("name", j.getName());
-			  			  		jObj.put("url", j.getUrl());
-			  			
-			  			  		if(j.details().getLastBuild() != null) {
-			  			  			jObj.put("last_build", Integer.toString(j.details().getLastBuild().getNumber()));
-			  			  		}
-			  			  		else {
-			  			  			jObj.put("last_build", "no_builds");
-			  			  		}
-			  			
-			  			  		measurementResultJSONArray.put(jObj);
-			  			  	}
-			  			  				  			  
-		  			  	} catch(IOException e) {
-			      			e.printStackTrace();
-		  			  	}
-		  			  	
-		  			  	measurements.add(new Measurement(uQasarMetric.JENKINS_PROJECTS, measurementResultJSONArray.toString()));
-		            	
-		            }
-		            
-		            return measurements;
-		            
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
-					return measurements;
-					// TODO fixaa tämä exception
+			
+			for(int i = 0; i < parts.length; i++) {
+				if(parts[i].compareTo("job") == 0 && parts.length-1 > i){
+					project = parts[i+1];
+					i = parts.length;
+					}
+				else if (i == 3){
+					url = url + parts[i];
 				}
-	        
-    		} catch(NullPointerException e) {
-    			throw new uQasarException(String.format("There was an exception"));
+				else{
+					url = url + parts[i] + "/";
+					}
 			}
-    		            
+			
+			
+            /* Initialize new Jenkins server */
+            JenkinsServer jenkins = null;            
+
+            /* Use the Jenkins-client library to open the server connection */
+				
+        //********************************* Connecting to server *********************************//
+				
+			jenkins = new JenkinsServer(new URI(url), user.getUsername(), user.getPassword());
+		
+            /* This comes from the U-QASAR interface */
+            String query = queryExpression.getQuery();
+            		            
+		//******************************* Implementing data mapping *******************************//
+		// TODO: Is better error handling needed?
+
+            if (query.equalsIgnoreCase(uQasarMetric.JENKINS_LATEST_BUILD_SUCCESS.name())) {
+            	
+            	// Here the status of the latest build is fetched
+            	// Only status "Stable", "Unstable" and "Failed" are noticed.
+            	// Should all the statuses be noticed?
+
+          	  	JobWithDetails job  = null;
+          	  	String status = "";
+            	
+      	  		job = jenkins.getJobs().get(project).details();
+      	  		
+				if(job.getLastBuild().getNumber() == job.getLastStableBuild().getNumber()){
+				 
+					status = "Stable";
+				}
+				else if (job.getLastBuild().getNumber() == job.getLastUnstableBuild().getNumber()) {
+				  
+					status = "Unstable";
+				}
+				else if (job.getLastBuild().getNumber() == job.getLastFailedBuild().getNumber()) {
+					status = "Broken";
+				}
+				else
+					status = "Unknown";
+          	  	
+          	  	measurements.add(new Measurement(uQasarMetric.JENKINS_LATEST_BUILD_SUCCESS, status));
+                
+            }
+            
+            if (query.equalsIgnoreCase(uQasarMetric.JENKINS_BUILD_HISTORY.name())) {
+            	
+            	// Here the status of the maximum 100 latest builds are fetched
+            	// Only status "Stable", "Unstable" and "Failed" are noticed.
+            	// Should all the statuses be noticed?
+            	
+            	JobWithDetails job  = null;  
+            	JSONArray measurementResultJSONArray = new JSONArray();
+            	
+            	job = jenkins.getJobs().get(project).details();
+            	
+	      		for(int i=0; i< Math.min(100, job.getBuilds().size()); i++ ) {
+	      			
+	      			JSONObject jObj = new JSONObject();
+	      			jObj.put("BuildNumber", Integer.toString(job.getBuilds().get(i).details().getNumber()));
+	      			
+	      			if(job.getBuilds().get(i).details().getResult().name() != "STABLE") {
+	      				jObj.put("BuildStatus", "Stable");
+	      			}
+	      			else if(job.getBuilds().get(i).details().getResult().name() != "UNSTABLE") {
+	      				jObj.put("BuildStatus", "Unstable");
+	      			}
+	      			else if(job.getBuilds().get(i).details().getResult().name() != "FAILED") {
+	      				jObj.put("BuildStatus", "Broken");
+	      			}
+	      			else {
+	      				jObj.put("BuildStatus", "Other");
+	      			}
+	      			
+	      			measurementResultJSONArray.put(jObj);
+	      		}
+            	
+            	measurements.add(new Measurement(uQasarMetric.JENKINS_BUILD_HISTORY, measurementResultJSONArray.toString()));
+	      		
+            }
+            
+            if (query.equalsIgnoreCase(uQasarMetric.JENKINS_PROJECTS.name())) {
+            	
+            	// Here all the projects in the Jenkins instance are fetched
+            	// Name, url, last build.
+            	// Is something else needed?
+            
+            	JobWithDetails job  = null;
+            	Map<String, Job> jobs = null;
+  			  	JSONArray measurementResultJSONArray = new JSONArray();
+  			  	
+		  		job = jenkins.getJobs().get(project).details();
+		  		jobs = jenkins.getJobs();
+		  	
+  			  	for (Map.Entry entry : jobs.entrySet()) {
+  			  		JSONObject jObj = new JSONObject();
+  				  
+  			  		Job j = (Job) entry.getValue();
+  			  		jObj.put("name", j.getName());
+  			  		jObj.put("url", j.getUrl());
+  			
+  			  		if(j.details().getLastBuild() != null) {
+  			  			jObj.put("last_build", Integer.toString(j.details().getLastBuild().getNumber()));
+  			  		}
+  			  		else {
+  			  			jObj.put("last_build", "no_builds");
+  			  		}
+  			
+  			  		measurementResultJSONArray.put(jObj);
+  			  	}
+  			  	
+  			  	measurements.add(new Measurement(uQasarMetric.JENKINS_PROJECTS, measurementResultJSONArray.toString()));
+            	
+            }
+	            
+            return measurements;
+
         } catch (Exception e) {
         	e.printStackTrace();
 			return measurements;
-			// TODO fixaa tämä exception
 		}
+        
+//    	catch(NullPointerException e) {
+//    		throw new uQasarException(String.format("There was an exception"));
+//		}
+				
+//		catch (URISyntaxException e) {
+//			e.printStackTrace();
+//			return measurements;
+//		}
+        
     }
 
 /************************************** QUERY METHOD U-QASAR - ADAPTER  **************************************/
@@ -246,33 +239,70 @@ public class JenkinsAdapter implements SystemAdapter {
 /************************************** MAIN METHOD FOR TESTING  **************************************/
 
     // Execute on command line: 
-    // $ java -jar target\GitLabAdapter-1.0-jar https://gitlab.com user:pass QUERY
-    // QUERY is e.g. GIT_PROJECTS or GIT_COMMITS
+    // $ java -jar target\GitLabAdapter-1.0-jar http://dev.uqasar.eu/jenkins/job/uqasar/ user:pass QUERY
+    // QUERY is JENKINS_PROJECTS or JENKINS_BUILD_HISTORY or JENKINS_LATEST_BUILD_SUCCESS
     
     // TODO: kirjoita uusi testi tälle luokalle!
-	public static void main(String[] args) {
-		
-		
-	    List<Measurement> measurements;
-	    BindedSystem boundSystem = new BindedSystem();
-	    boundSystem.setUri(args[0]);
-	
-	    // User
-	    User user = new User();
-	    
-	    String[] credentials = args[1].split(":");
-	    user.setUsername(credentials[0]);
-	    user.setPassword(credentials[1]);
-	
-	    
-	    try {
-	    	JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
-	    	JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression(args[2]);    	
-	        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
-	        jenkinsAdapter.printMeasurements(measurements);
-	        
-	    } catch (uQasarException e) {
-	        e.printStackTrace();
-	    }    
-	}
+//	public static void main(String[] args) {
+//		
+//	    List<Measurement> measurements;
+//	    BindedSystem boundSystem = new BindedSystem();
+//	    boundSystem.setUri(args[0]);
+//	
+//	    // User
+//	    User user = new User();
+//	    
+//	    String[] credentials = args[1].split(":");
+//	    user.setUsername(credentials[0]);
+//	    user.setPassword(credentials[1]);
+//	
+//	    
+//	    try {
+//	    	JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
+//	    	JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression(args[2]);    	
+//	        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
+//	        jenkinsAdapter.printMeasurements(measurements);
+//	        
+//	    } catch (uQasarException e) {
+//	        e.printStackTrace();
+//	    }    
+//	}
+    
+    
+    public static void main(String[] args) {
+    	
+    	List<Measurement> measurements;
+ 	    BindedSystem boundSystem = new BindedSystem();
+ 	    boundSystem.setUri("http://dev.uqasar.eu/jenkins/job/uqasar/");
+ 	
+ 	    // User
+ 	    User user = new User();
+ 	    
+ 	    //String[] credentials = args[1].split(":");
+ 	    user.setUsername("jenkins");
+ 	    user.setPassword("!jenkins!");
+ 	
+ 	    
+ 	    try {
+ 	    	JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
+ 	    	JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression("JENKINS_BUILD_HISTORY");    	
+ 	        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
+ 	        jenkinsAdapter.printMeasurements(measurements);
+ 	        
+ 	    } catch (uQasarException e) {
+ 	        e.printStackTrace();
+ 	    }
+    }
+    
 }
+
+
+
+
+
+
+
+
+
+
+
