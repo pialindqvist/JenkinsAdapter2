@@ -62,7 +62,6 @@ public class JenkinsAdapter implements SystemAdapter {
 					}
 			}
 			
-			
             /* Initialize new Jenkins server */
             JenkinsServer jenkins = null;            
 
@@ -76,7 +75,6 @@ public class JenkinsAdapter implements SystemAdapter {
             String query = queryExpression.getQuery();
             		            
 		//******************************* Implementing data mapping *******************************//
-		// TODO: Is better error handling needed?
 
             if (query.equalsIgnoreCase(uQasarMetric.JENKINS_LATEST_BUILD_SUCCESS.name())) {
             	
@@ -147,7 +145,6 @@ public class JenkinsAdapter implements SystemAdapter {
             	
             	// Here all the projects in the Jenkins instance are fetched
             	// Name, url, last build.
-            	// Is something else needed?
             
             	JobWithDetails job  = null;
             	Map<String, Job> jobs = null;
@@ -184,15 +181,6 @@ public class JenkinsAdapter implements SystemAdapter {
 			return measurements;
 		}
         
-//    	catch(NullPointerException e) {
-//    		throw new uQasarException(String.format("There was an exception"));
-//		}
-				
-//		catch (URISyntaxException e) {
-//			e.printStackTrace();
-//			return measurements;
-//		}
-        
     }
 
 /************************************** QUERY METHOD U-QASAR - ADAPTER  **************************************/
@@ -212,13 +200,11 @@ public class JenkinsAdapter implements SystemAdapter {
         user.setUsername(creds[0]);
         user.setPassword(creds[1]);
 
-        JenkinsQueryExpression jenkinsQueryExpression = 
-        		new JenkinsQueryExpression(queryExpression);
+        JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression(queryExpression);
         
         JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
         // Get the measurements
-        measurements = jenkinsAdapter.query(boundSystem, user, 
-        		jenkinsQueryExpression);
+        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
 
         return measurements;
     }
@@ -239,70 +225,33 @@ public class JenkinsAdapter implements SystemAdapter {
 /************************************** MAIN METHOD FOR TESTING  **************************************/
 
     // Execute on command line: 
-    // $ java -jar target\GitLabAdapter-1.0-jar http://dev.uqasar.eu/jenkins/job/uqasar/ user:pass QUERY
+    // $ java -jar target\JenkinsAdapter-1.0-jar http://dev.uqasar.eu/jenkins/job/<Jobname>/ user:pass QUER
+    // Jobname for example http://dev.uqasar.eu/jenkins/job/uqasar/
     // QUERY is JENKINS_PROJECTS or JENKINS_BUILD_HISTORY or JENKINS_LATEST_BUILD_SUCCESS
     
-    // TODO: kirjoita uusi testi tälle luokalle!
-//	public static void main(String[] args) {
-//		
-//	    List<Measurement> measurements;
-//	    BindedSystem boundSystem = new BindedSystem();
-//	    boundSystem.setUri(args[0]);
-//	
-//	    // User
-//	    User user = new User();
-//	    
-//	    String[] credentials = args[1].split(":");
-//	    user.setUsername(credentials[0]);
-//	    user.setPassword(credentials[1]);
-//	
-//	    
-//	    try {
-//	    	JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
-//	    	JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression(args[2]);    	
-//	        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
-//	        jenkinsAdapter.printMeasurements(measurements);
-//	        
-//	    } catch (uQasarException e) {
-//	        e.printStackTrace();
-//	    }    
-//	}
-    
-    
-    public static void main(String[] args) {
-    	
-    	List<Measurement> measurements;
- 	    BindedSystem boundSystem = new BindedSystem();
- 	    boundSystem.setUri("http://dev.uqasar.eu/jenkins/job/uqasar/");
- 	
- 	    // User
- 	    User user = new User();
- 	    
- 	    //String[] credentials = args[1].split(":");
- 	    user.setUsername("jenkins");
- 	    user.setPassword("!jenkins!");
- 	
- 	    
- 	    try {
- 	    	JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
- 	    	JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression("JENKINS_BUILD_HISTORY");    	
- 	        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
- 	        jenkinsAdapter.printMeasurements(measurements);
- 	        
- 	    } catch (uQasarException e) {
- 	        e.printStackTrace();
- 	    }
-    }
-    
+	public static void main(String[] args) {
+		
+	    List<Measurement> measurements;
+	    BindedSystem boundSystem = new BindedSystem();
+	    boundSystem.setUri(args[0]);
+	
+	    // User
+	    User user = new User();
+	    
+	    String[] credentials = args[1].split(":");
+	    user.setUsername(credentials[0]);
+	    user.setPassword(credentials[1]);
+	
+	    
+	    try {
+	    	JenkinsAdapter jenkinsAdapter = new JenkinsAdapter();
+	    	JenkinsQueryExpression jenkinsQueryExpression = new JenkinsQueryExpression(args[2]);    	
+	        measurements = jenkinsAdapter.query(boundSystem, user, jenkinsQueryExpression);
+	        jenkinsAdapter.printMeasurements(measurements);
+	        
+	    } catch (uQasarException e) {
+	        e.printStackTrace();
+	    }    
+	}
+        
 }
-
-
-
-
-
-
-
-
-
-
-
